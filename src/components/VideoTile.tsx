@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Hand, MicOff, MonitorUp } from 'lucide-react'
 import Avatar from './Avatar'
 import { useSpeaking } from '../lib/useSpeaking'
+import { AUDIO_BLOCKED_EVENT } from '../lib/audioUnlock'
 
 type Props = {
   name: string
@@ -27,11 +28,19 @@ export default function VideoTile({
   const showVideo = !!stream && (camOn || screen) && stream.getVideoTracks().length > 0
 
   useEffect(() => {
-    if (ref.current && stream) ref.current.srcObject = stream
+    const v = ref.current
+    if (v && stream) {
+      v.srcObject = stream
+      void v.play().catch(() => undefined)
+    }
   }, [stream, showVideo])
-  // Keep audio playing even when the video element is unmounted (camera off).
+
+  // Remote audio plays through a dedicated element so it keeps going when the camera is off.
   useEffect(() => {
-    if (audioRef.current && stream) audioRef.current.srcObject = stream
+    const a = audioRef.current
+    if (!a || !stream) return
+    a.srcObject = stream
+    a.play().catch(() => window.dispatchEvent(new Event(AUDIO_BLOCKED_EVENT)))
   }, [stream])
 
   return (
@@ -53,7 +62,7 @@ export default function VideoTile({
           <Avatar name={name} color={color} size={88} />
         </div>
       )}
-      {!muted && <audio ref={audioRef} autoPlay />}
+      {!muted && <audio ref={audioRef} autoPlay playsInline data-remote />}
       <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-black/50 px-2.5 py-1 text-sm text-white backdrop-blur">
         {!micOn && <MicOff size={14} className="text-red-400" />}
         {screen && <MonitorUp size={14} className="text-accent" />}

@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Mic, MicOff, Video, VideoOff, Settings2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, AlertTriangle } from 'lucide-react'
 import Logo from '../components/Logo'
 import VideoTile from '../components/VideoTile'
 import ControlButton from '../components/ControlButton'
+import DevicePicker from '../components/DevicePicker'
 import { useMedia } from '../lib/useMedia'
 import { colorFor, loadName, saveName } from '../lib/meeting'
 
 export default function Lobby() {
   const { code = '' } = useParams()
   const nav = useNavigate()
-  const { stream, error, cam, mic, toggleCam, toggleMic } = useMedia()
+  const { stream, error, cam, mic, hasVideo, toggleCam, toggleMic, devices, micId, camId, setMicId, setCamId } = useMedia()
   const [name, setName] = useState(loadName)
 
   const join = (e: React.FormEvent) => {
@@ -28,10 +29,10 @@ export default function Lobby() {
       <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-10 px-6 pb-12 lg:grid-cols-[1.4fr_1fr]">
         <section className="fade-in">
           <div className="relative aspect-video overflow-hidden rounded-2xl bg-tile shadow-lg">
-            <VideoTile name={name.trim() || 'You'} color={colorFor(name || 'You')} stream={stream} camOn={cam} micOn={mic} mirror muted className="h-full w-full !rounded-none" />
+            <VideoTile name={name.trim() || 'You'} color={colorFor(name || 'You')} stream={stream} camOn={cam && hasVideo} micOn={mic} mirror muted className="h-full w-full !rounded-none" />
             {error && (
-              <div className="absolute inset-x-0 top-0 bg-black/60 px-4 py-2 text-center text-sm text-white">
-                Camera unavailable: {error}. You can still join and listen.
+              <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-black/70 px-4 py-2 text-sm text-white">
+                <AlertTriangle size={16} className="shrink-0 text-yellow-300" /> {error}
               </div>
             )}
             <div className="absolute inset-x-0 bottom-5 flex justify-center gap-4">
@@ -39,9 +40,7 @@ export default function Lobby() {
               <ControlButton icon={cam ? <Video size={22} /> : <VideoOff size={22} />} label={cam ? 'Turn off camera' : 'Turn on camera'} active={cam} onClick={toggleCam} />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2 text-sm text-muted">
-            <Settings2 size={16} /> Check your audio and video before you enter the space
-          </div>
+          <DevicePicker devices={devices} micId={micId} camId={camId} onMic={setMicId} onCam={setCamId} stream={stream} micOn={mic} />
         </section>
 
         <form onSubmit={join} className="fade-in flex flex-col items-center text-center">
@@ -75,6 +74,9 @@ export default function Lobby() {
               Cancel
             </button>
           </div>
+          <p className="mt-6 max-w-xs text-xs text-muted">
+            Testing on one computer with two tabs? Use headphones, otherwise echo cancellation silences your own voice.
+          </p>
         </form>
       </main>
     </div>

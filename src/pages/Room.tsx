@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   Mic, MicOff, Video, VideoOff, MonitorUp, MonitorX, Hand, Smile, PhoneOff,
-  Info, Users, MessageSquare, X, Send, Copy, Check, Loader2, WifiOff,
+  Info, Users, MessageSquare, X, Send, Copy, Check, Loader2, WifiOff, Volume2,
 } from 'lucide-react'
 import VideoTile from '../components/VideoTile'
+import { AUDIO_BLOCKED_EVENT, unlockAudio } from '../lib/audioUnlock'
 import ControlButton from '../components/ControlButton'
 import Avatar from '../components/Avatar'
 import { useMedia } from '../lib/useMedia'
@@ -25,7 +26,7 @@ export default function Room() {
 function LiveRoom({ code, name }: { code: string; name: string }) {
   const nav = useNavigate()
   const prefs = (useLocation().state as { cam?: boolean; mic?: boolean } | null) ?? {}
-  const { stream, error: mediaError, cam, mic, toggleCam, toggleMic } = useMedia({ cam: prefs.cam ?? true, mic: prefs.mic ?? true })
+  const { stream, error: mediaError, cam, mic, hasVideo, toggleCam, toggleMic } = useMedia({ cam: prefs.cam ?? true, mic: prefs.mic ?? true })
   const mediaReady = !!stream || !!mediaError
 
   const [hand, setHand] = useState(false)
@@ -35,6 +36,7 @@ function LiveRoom({ code, name }: { code: string; name: string }) {
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [clock, setClock] = useState(() => new Date())
   const [readCount, setReadCount] = useState(0)
+  const [audioBlocked, setAudioBlocked] = useState(false)
 
   const { peers, messages, reactions, status, error, sendChat, sendReaction, shareScreen, stopShare, screenStream } = useRoom({
     code,
@@ -48,6 +50,15 @@ function LiveRoom({ code, name }: { code: string; name: string }) {
     const t = setInterval(() => setClock(new Date()), 15_000)
     return () => clearInterval(t)
   }, [])
+  useEffect(() => {
+    const on = () => setAudioBlocked(true)
+    window.addEventListener(AUDIO_BLOCKED_EVENT, on)
+    return () => window.removeEventListener(AUDIO_BLOCKED_EVENT, on)
+  }, [])
+  const enableAudio = () => {
+    unlockAudio()
+    setAudioBlocked(false)
+  }
   // Unread = messages from others that arrived while the chat panel was closed.
   const unread = panel === 'chat' ? 0 : messages.slice(readCount).filter(m => !m.own).length
 
@@ -93,6 +104,14 @@ function LiveRoom({ code, name }: { code: string; name: string }) {
               <Loader2 size={16} className="animate-spin" /> Connecting to the space…
             </div>
           )}
+          {audioBlocked && (
+            <button onClick={enableAudio} className="mb-3 flex w-full items-center gap-2 rounded-lg bg-accent px-4 py-2 text-left text-sm font-medium text-room">
+              <Volume2 size={16} /> Your browser blocked audio playback. Click here to hear the others.
+            </button>
+          )}
+          {mediaError && (
+            <div className="mb-3 rounded-lg bg-yellow-400/20 px-4 py-2 text-sm">{mediaError}</div>
+          )}
           {status === 'error' && (
             <div className="mb-3 flex items-center justify-between rounded-lg bg-danger/20 px-4 py-2 text-sm">
               <span className="flex items-center gap-2"><WifiOff size={16} /> {error}</span>
@@ -118,7 +137,7 @@ function LiveRoom({ code, name }: { code: string; name: string }) {
           >
             <VideoTile
               name={`${name} (You)`} color={colorFor(name)} stream={localTileStream}
-              camOn={cam} micOn={mic} hand={hand} screen={sharing} mirror muted className="fade-in min-h-[160px]"
+              camOn={cam && hasVideo} micOn={mic} hand={hand} screen={sharing} mirror muted className="fade-in min-h-[160px]"
             />
             {others.map(p => (
               <VideoTile
