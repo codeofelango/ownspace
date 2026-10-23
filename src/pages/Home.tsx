@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Video, Keyboard, Plus, Link2, CalendarPlus, ChevronLeft, ChevronRight,
-  HelpCircle, Settings, Grid3X3, ShieldCheck, Share2, Users, Info, Mic, Video as Cam, PhoneOff, MonitorUp, Hand,
+  ShieldCheck, Share2, Users, Info, Mic, Video as Cam, PhoneOff, MonitorUp, Hand,
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import Avatar from '../components/Avatar'
@@ -74,10 +74,7 @@ export default function Home() {
           <span className="hidden pr-3 text-sm sm:block">
             {time} • {date}
           </span>
-          <IconBtn label="Support"><HelpCircle size={22} /></IconBtn>
-          <IconBtn label="Settings"><Settings size={22} /></IconBtn>
-          <IconBtn label="Apps"><Grid3X3 size={22} /></IconBtn>
-          <div className="ml-2"><Avatar name="You" color="#6d4aff" size={32} /></div>
+          <a href="https://github.com/codeofelango/ownspace" target="_blank" rel="noreferrer" className="rounded-full px-3 py-1.5 text-sm font-medium transition hover:bg-surface-2">GitHub</a>
         </div>
       </header>
 
@@ -103,7 +100,6 @@ export default function Home() {
                 <div className="fade-in absolute left-0 top-14 z-10 w-80 overflow-hidden rounded-xl bg-surface py-2 shadow-[0_8px_28px_rgba(0,0,0,.18)] ring-1 ring-line">
                   <MenuItem icon={<Link2 size={20} />} label="Create a space for later" onClick={copyLink} />
                   <MenuItem icon={<Plus size={20} />} label="Start an instant space" onClick={start} />
-                  <MenuItem icon={<CalendarPlus size={20} />} label="Schedule a space" onClick={() => setToast('Calendar integration coming soon')} />
                 </div>
               )}
             </div>
@@ -187,14 +183,6 @@ export default function Home() {
         </div>
       )}
     </div>
-  )
-}
-
-function IconBtn({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <button type="button" aria-label={label} title={label} className="rounded-full p-2.5 transition hover:bg-surface-2">
-      {children}
-    </button>
   )
 }
 
