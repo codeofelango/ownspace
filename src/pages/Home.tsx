@@ -74,7 +74,6 @@ export default function Home() {
           <span className="hidden pr-3 text-sm sm:block">
             {time} • {date}
           </span>
-          <a href="https://github.com/codeofelango/ownspace" target="_blank" rel="noreferrer" className="rounded-full px-3 py-1.5 text-sm font-medium transition hover:bg-surface-2">GitHub</a>
         </div>
       </header>
 
@@ -133,7 +132,7 @@ export default function Home() {
 
           <hr className="my-8 border-line" />
           <p className="text-sm text-muted">
-            Built by <a className="font-medium text-brand hover:underline" href="https://github.com/codeofelango" target="_blank" rel="noreferrer">codeofelango</a>. Open source, no account required.
+            No account required. Your microphone and camera stay in your browser.
           </p>
         </section>
 
