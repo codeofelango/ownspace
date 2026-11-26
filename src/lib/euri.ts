@@ -22,9 +22,13 @@ export const MODELS = {
 
 const KEY = 'ownspace.euri.key'
 
+/** Key baked in at build time (VITE_EURI_API_KEY). When present the UI never asks for one. */
+export const ENV_KEY = ((import.meta.env.VITE_EURI_API_KEY as string | undefined) ?? '').trim()
+export const hasEnvKey = () => looksLikeKey(ENV_KEY)
+
 export const loadKey = () => {
   try {
-    return localStorage.getItem(KEY) || (import.meta.env.VITE_EURI_API_KEY as string | undefined) || ''
+    return ENV_KEY || localStorage.getItem(KEY) || ''
   } catch {
     return ''
   }

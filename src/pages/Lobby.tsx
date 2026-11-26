@@ -8,7 +8,7 @@ import DevicePicker from '../components/DevicePicker'
 import Avatar from '../components/Avatar'
 import { useMedia } from '../lib/useMedia'
 import { colorFor, loadName, saveName } from '../lib/meeting'
-import { checkKey, loadKey, looksLikeKey, saveKey } from '../lib/euri'
+import { checkKey, hasEnvKey, loadKey, looksLikeKey, saveKey } from '../lib/euri'
 import { PRESETS, loadSession, presetToExpert, resolveRoster, saveSession, type Expert } from '../lib/experts'
 
 export default function Lobby() {
@@ -28,6 +28,7 @@ export default function Lobby() {
   const [setupError, setSetupError] = useState<string | null>(null)
 
   const wantsPanel = topic.trim() || wanted.trim() || picked.length > 0
+  const envKey = hasEnvKey()
   const needsKey = !!wantsPanel && !looksLikeKey(apiKey)
 
   const togglePreset = (id: string) => {
@@ -49,7 +50,7 @@ export default function Lobby() {
     const r = await checkKey(k)
     setKeyState(r.ok ? 'ok' : 'bad')
     setKeyMsg(r.ok ? 'Key works' : r.error)
-    if (r.ok) saveKey(k)
+    if (r.ok && !envKey) saveKey(k)
     return r.ok
   }
 
@@ -76,7 +77,7 @@ export default function Lobby() {
       } finally {
         setBusy(false)
       }
-    } else if (looksLikeKey(apiKey)) {
+    } else if (looksLikeKey(apiKey) && !envKey) {
       saveKey(apiKey.trim())
     }
     nav(`/${code}`, { state: { cam, mic } })
@@ -183,7 +184,7 @@ export default function Lobby() {
               </ul>
             )}
 
-            <label className="mt-4 block">
+            {!envKey && <label className="mt-4 block">
               <span className="mb-1 flex items-center gap-1.5 text-sm font-medium text-muted"><KeyRound size={14} /> EURI API key</span>
               <div className="flex gap-2">
                 <input
@@ -202,7 +203,7 @@ export default function Lobby() {
               <span className={`mt-1 block text-xs ${keyState === 'bad' ? 'text-danger' : 'text-muted'}`}>
                 {keyMsg || <>Free on Euron Plus. Stored only in this browser. Get one at <a className="text-brand hover:underline" href="https://euron.one/euri" target="_blank" rel="noreferrer">euron.one/euri</a>.</>}
               </span>
-            </label>
+            </label>}
           </fieldset>
 
           {setupError && <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{setupError}</p>}
