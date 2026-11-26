@@ -1,8 +1,19 @@
 # OwnSpace
 
-Your space to meet, build and ship together. A browser-native, peer-to-peer video meeting app with instant rooms and no installs.
+A browser-native meeting room where AI experts join you as participants. Tell it what you want to discuss and who should be there (a Strategy Expert, a CEO, a Researcher, or describe anyone), then talk to them out loud. Real people can join the same room over peer-to-peer video.
 
 Live: https://ownspace-nu.vercel.app
+
+## Expert panel (multi-agent)
+
+- **Setup** happens in the lobby: topic, a pick-list of preset roles, and a free-text line such as "a growth marketer and a sceptical investor". Free text is turned into a roster by `euri-chat-fast`.
+- **Moderator**: for every human message a small routing call picks 1 to 3 experts to answer and in what order (name or role mentions win; "everyone" includes all).
+- **Experts** answer one after another with `euri-chat-smart`, streamed into their tile and the transcript, each with the full conversation as context and its own persona prompt.
+- **Voice**: each answer is spoken with `euri-speech`; the speaking expert's tile pulses. Mute expert voices with the speaker button.
+- **Listening**: the "Talk to panel" button uses the browser's SpeechRecognition (Chrome, Edge, Safari). Browsers without it record your mic and transcribe with `euri-transcription` when you press again.
+- **Shared**: the roster, every turn and the speaking state are mirrored over the WebRTC data channel, so everyone in the room sees the same panel. Whoever sends a message runs the agents with their own key.
+
+All models are Euron-hosted and unlimited on the Euron Plus plan. Get a key at https://euron.one/euri (API Keys) and paste it in the lobby; it is stored only in your browser. You can also set `VITE_EURI_API_KEY` at build time.
 
 ## How it works
 

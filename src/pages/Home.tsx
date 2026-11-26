@@ -10,8 +10,8 @@ import { newMeetingCode, parseCode } from '../lib/meeting'
 
 const slides = [
   {
-    title: 'One link, your whole crew',
-    body: 'Start a space and share the link. Anyone with it drops straight into the room from any browser.',
+    title: 'Experts on demand',
+    body: 'Pick a CEO, a strategist, a researcher, or describe who you need. Each one joins as an AI participant with its own voice and point of view.',
     Icon: Link2,
   },
   {
@@ -81,10 +81,10 @@ export default function Home() {
       <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-12 px-6 py-10 lg:grid-cols-2 lg:gap-8">
         <section className="fade-in max-w-xl">
           <h1 className="text-[2.75rem] leading-[1.1] font-extrabold tracking-tight text-ink sm:text-[3.4rem]">
-            Your space to <span className="gradient-text">meet</span>, build and ship together
+            Meet your <span className="gradient-text">expert panel</span>, out loud
           </h1>
           <p className="mt-5 text-lg text-muted">
-            Crisp video, instant rooms and zero installs. OwnSpace is the meeting room that lives in your browser.
+            Tell OwnSpace what you want to discuss and who should be there: a strategy expert, a CEO, a researcher. They join the room as AI participants, listen to you speak, and answer in their own voices. Invite real people too.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">

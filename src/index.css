@@ -34,3 +34,9 @@ body {
 
 .gradient-text { background: linear-gradient(90deg, #6d4aff, #14b8a6); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .glow { box-shadow: 0 10px 40px -10px rgba(109, 74, 255, .45); }
+
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, .55); border-radius: 9999px; }
+  50% { box-shadow: 0 0 0 14px rgba(20, 184, 166, 0); border-radius: 9999px; }
+}

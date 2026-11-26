@@ -27,6 +27,7 @@ type Wire =
   | { type: 'chat'; text: string; at: number }
   | { type: 'reaction'; emoji: string }
   | { type: 'callme' }
+  | { type: 'panel'; ev: unknown }
 
 type Options = {
   code: string
@@ -35,6 +36,10 @@ type Options = {
   /** true once the local camera/mic attempt has settled (success or failure) */
   mediaReady: boolean
   state: LocalState
+  /** Application-level messages (expert panel events) from a peer. */
+  onPanel?: (ev: unknown, from: string) => void
+  /** A peer finished its handshake; safe to send it application messages. */
+  onPeerReady?: (id: string) => void
 }
 
 const beaconId = (code: string) => `ownspace-${code.replace(/[^a-z0-9-]/gi, '').toLowerCase()}`
@@ -55,7 +60,7 @@ const peerOptions = () => {
     : {}
 }
 
-export function useRoom({ code, name, stream, mediaReady, state }: Options) {
+export function useRoom({ code, name, stream, mediaReady, state, onPanel, onPeerReady }: Options) {
   const [peers, setPeers] = useState<Record<string, RemotePeer>>({})
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [reactions, setReactions] = useState<Reaction[]>([])
@@ -75,6 +80,12 @@ export function useRoom({ code, name, stream, mediaReady, state }: Options) {
   const outStreamRef = useRef<MediaStream | null>(null) // what we send: camera, or screen + mic
   const screenRef = useRef<MediaStream | null>(null)
   const destroyedRef = useRef(false)
+  const onPanelRef = useRef(onPanel)
+  const onReadyRef = useRef(onPeerReady)
+  useEffect(() => {
+    onPanelRef.current = onPanel
+    onReadyRef.current = onPeerReady
+  }, [onPanel, onPeerReady])
 
   useEffect(() => {
     stateRef.current = fullState
@@ -148,6 +159,10 @@ export function useRoom({ code, name, stream, mediaReady, state }: Options) {
         switch (d.type) {
           case 'intro':
             upsert(c.peer, { name: d.name, ...d.state })
+            onReadyRef.current?.(c.peer)
+            break
+          case 'panel':
+            onPanelRef.current?.(d.ev, c.peer)
             break
           case 'state':
             upsert(c.peer, d.state)
@@ -326,6 +341,12 @@ export function useRoom({ code, name, stream, mediaReady, state }: Options) {
     setTimeout(() => setReactions(rs => rs.filter(x => x.id !== r.id)), 3500)
   }, [broadcast])
 
+  const sendPanel = useCallback((ev: unknown) => broadcast({ type: 'panel', ev }), [broadcast])
+  const sendPanelTo = useCallback((id: string, ev: unknown) => {
+    const c = dataRef.current.get(id)
+    if (c?.open) c.send({ type: 'panel', ev } satisfies Wire)
+  }, [])
+
   /** Swap the outgoing video track on every live peer connection. */
   const replaceVideo = useCallback(async (track: MediaStreamTrack | null) => {
     await Promise.all(
@@ -359,5 +380,5 @@ export function useRoom({ code, name, stream, mediaReady, state }: Options) {
     await replaceVideo(track)
   }, [replaceVideo, stopShare])
 
-  return { selfId, peers, messages, reactions, status, error, sendChat, sendReaction, shareScreen, stopShare, screenStream }
+  return { selfId, peers, messages, reactions, status, error, sendChat, sendReaction, sendPanel, sendPanelTo, shareScreen, stopShare, screenStream }
 }
