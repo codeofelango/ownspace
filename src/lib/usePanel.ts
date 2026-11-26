@@ -8,7 +8,7 @@ import { AUDIO_BLOCKED_EVENT } from './audioUnlock'
  *
  * Flow for every human message:
  *   1. moderator (euri-chat-fast) picks 1..3 experts to answer, in order
- *   2. each expert answers in turn (euri-chat-smart, streamed) with the whole transcript as context
+ *   2. each expert answers in turn (euri-chat-fast, streamed) with the whole transcript as context
  *   3. the answer is voiced (euri-speech) and the next expert waits until it finishes
  *
  * Every step is mirrored to the other humans in the room through `send`, so all browsers
@@ -203,7 +203,7 @@ export function usePanel({ apiKey, session, selfName, humans, voiceOn, send }: O
               appendDelta(turn.id, delta)
               send({ kind: 'delta', id: turn.id, text: delta })
             },
-            { model: MODELS.smart, temperature: 0.8, maxTokens: 220, signal: ctrl.signal },
+            { model: MODELS.fast, temperature: 0.8, maxTokens: 200, signal: ctrl.signal },
           )
           finishTurn(turn.id, full)
           send({ kind: 'done', id: turn.id })

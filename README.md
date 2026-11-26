@@ -8,7 +8,7 @@ Live: https://ownspace-nu.vercel.app
 
 - **Setup** happens in the lobby: topic, a pick-list of preset roles, and a free-text line such as "a growth marketer and a sceptical investor". Free text is turned into a roster by `euri-chat-fast`.
 - **Moderator**: for every human message a small routing call picks 1 to 3 experts to answer and in what order (name or role mentions win; "everyone" includes all).
-- **Experts** answer one after another with `euri-chat-smart`, streamed into their tile and the transcript, each with the full conversation as context and its own persona prompt.
+- **Experts** answer one after another with `euri-chat-fast`, streamed into their tile and the transcript, each with the full conversation as context and its own persona prompt.
 - **Voice**: each answer is spoken with `euri-speech`; the speaking expert's tile pulses. Mute expert voices with the speaker button.
 - **Listening**: the "Talk to panel" button uses the browser's SpeechRecognition (Chrome, Edge, Safari). Browsers without it record your mic and transcribe with `euri-transcription` when you press again.
 - **Shared**: the roster, every turn and the speaking state are mirrored over the WebRTC data channel, so everyone in the room sees the same panel. Whoever sends a message runs the agents with their own key.

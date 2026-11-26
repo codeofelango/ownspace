@@ -4,8 +4,8 @@
  * Auth:     Authorization: Bearer euri-...
  *
  * Euron-hosted models used here are unlimited on the Plus plan:
- *   euri-chat-fast      quick routing / moderation decisions
- *   euri-chat-smart     expert answers
+ *   euri-chat-fast      routing decisions and expert answers (euri-chat-smart leaks its
+ *                       reasoning into spoken replies, so it is not used for dialogue)
  *   euri-speech         text to speech
  *   euri-transcription  speech to text
  */
