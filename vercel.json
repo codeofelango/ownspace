@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/euri/:path*", "destination": "/api/euri/[...path]" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
