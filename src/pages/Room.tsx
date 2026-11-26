@@ -13,7 +13,7 @@ import Avatar from '../components/Avatar'
 import { useMedia } from '../lib/useMedia'
 import { useRoom } from '../lib/useRoom'
 import { colorFor, loadName } from '../lib/meeting'
-import { loadKey } from '../lib/euri'
+import { loadKey, PROXY_KEY, serverKeyConfigured, serverKeyKnown } from '../lib/euri'
 import { loadSession, saveSession, type Session } from '../lib/experts'
 import { usePanel, type PanelEvent } from '../lib/usePanel'
 import { useVoiceInput } from '../lib/useVoiceInput'
@@ -46,7 +46,11 @@ function LiveRoom({ code, name }: { code: string; name: string }) {
   const [audioBlocked, setAudioBlocked] = useState(false)
   const [voiceOn, setVoiceOn] = useState(true)
   const [session, setSession] = useState<Session | null>(() => loadSession(code))
-  const [apiKey] = useState(loadKey)
+  const [apiKey, setApiKey] = useState(() => loadKey() || (serverKeyKnown() ? PROXY_KEY : ''))
+  useEffect(() => {
+    if (apiKey) return
+    void serverKeyConfigured().then(ok => ok && setApiKey(PROXY_KEY))
+  }, [apiKey])
 
   // --- expert panel wiring -------------------------------------------------
   const panelRef = useRef<{ receive: (ev: PanelEvent) => void } | null>(null)

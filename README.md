@@ -13,7 +13,7 @@ Live: https://ownspace-nu.vercel.app
 - **Listening**: the "Talk to panel" button uses the browser's SpeechRecognition (Chrome, Edge, Safari). Browsers without it record your mic and transcribe with `euri-transcription` when you press again.
 - **Shared**: the roster, every turn and the speaking state are mirrored over the WebRTC data channel, so everyone in the room sees the same panel. Whoever sends a message runs the agents with their own key.
 
-All models are Euron-hosted and unlimited on the Euron Plus plan. Get a key at https://euron.one/euri (API Keys) and paste it in the lobby; it is stored only in your browser. You can also set `VITE_EURI_API_KEY` at build time.
+All models are Euron-hosted and unlimited on the Euron Plus plan. Requests go through the app's own `/api/euri` proxy (`api/euri/[...path].ts` on Vercel, a Vite middleware in dev) because the gateway's CORS policy only allows a few origins. Set `EURI_API_KEY` as a private environment variable (Vercel project settings, or `.env.local` locally) and the key never reaches the browser; the lobby then hides the key field. Without it, each person pastes their own key in the lobby, stored only in their browser.
 
 ## How it works
 

@@ -10,7 +10,15 @@
  *   euri-transcription  speech to text
  */
 
-export const EURI_BASE = 'https://api.euron.one/api/v1/euri'
+/**
+ * Requests go through the app's own /api/euri proxy (api/euri/[...path].ts on Vercel,
+ * a Vite middleware in dev). The gateway's CORS policy only allows a few origins, and
+ * the proxy can hold the key server-side so it never ships to the browser.
+ */
+export const EURI_BASE = '/api/euri'
+
+/** Sentinel meaning "the server holds the key"; no Authorization header is sent. */
+export const PROXY_KEY = 'proxy'
 
 export const MODELS = {
   fast: 'euri-chat-fast',
@@ -22,13 +30,24 @@ export const MODELS = {
 
 const KEY = 'ownspace.euri.key'
 
-/** Key baked in at build time (VITE_EURI_API_KEY). When present the UI never asks for one. */
-export const ENV_KEY = ((import.meta.env.VITE_EURI_API_KEY as string | undefined) ?? '').trim()
-export const hasEnvKey = () => looksLikeKey(ENV_KEY)
+let serverHasKey: boolean | null = null
+/** Ask the proxy once whether it holds a key. */
+export async function serverKeyConfigured(): Promise<boolean> {
+  if (serverHasKey !== null) return serverHasKey
+  try {
+    const r = await fetch(`${EURI_BASE}/health`)
+    const j = await r.json()
+    serverHasKey = !!j?.configured
+  } catch {
+    serverHasKey = false
+  }
+  return serverHasKey
+}
+export const serverKeyKnown = () => serverHasKey
 
 export const loadKey = () => {
   try {
-    return ENV_KEY || localStorage.getItem(KEY) || ''
+    return localStorage.getItem(KEY) || ''
   } catch {
     return ''
   }
@@ -53,8 +72,8 @@ export class EuriError extends Error {
   }
 }
 
-const headers = (key: string, json = true) => ({
-  Authorization: `Bearer ${key}`,
+const headers = (key: string, json = true): Record<string, string> => ({
+  ...(key && key !== PROXY_KEY ? { Authorization: `Bearer ${key}` } : {}),
   ...(json ? { 'Content-Type': 'application/json' } : {}),
 })
 

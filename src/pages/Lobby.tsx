@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Mic, MicOff, Video, VideoOff, AlertTriangle, Bot, Check, KeyRound, Loader2, Sparkles, X } from 'lucide-react'
 import Logo from '../components/Logo'
@@ -8,7 +8,7 @@ import DevicePicker from '../components/DevicePicker'
 import Avatar from '../components/Avatar'
 import { useMedia } from '../lib/useMedia'
 import { colorFor, loadName, saveName } from '../lib/meeting'
-import { checkKey, hasEnvKey, loadKey, looksLikeKey, saveKey } from '../lib/euri'
+import { checkKey, loadKey, looksLikeKey, PROXY_KEY, saveKey, serverKeyConfigured, serverKeyKnown } from '../lib/euri'
 import { PRESETS, loadSession, presetToExpert, resolveRoster, saveSession, type Expert } from '../lib/experts'
 
 export default function Lobby() {
@@ -28,8 +28,10 @@ export default function Lobby() {
   const [setupError, setSetupError] = useState<string | null>(null)
 
   const wantsPanel = topic.trim() || wanted.trim() || picked.length > 0
-  const envKey = hasEnvKey()
-  const needsKey = !!wantsPanel && !looksLikeKey(apiKey)
+  const [envKey, setEnvKey] = useState(() => serverKeyKnown() ?? false)
+  useEffect(() => { void serverKeyConfigured().then(setEnvKey) }, [])
+  const effectiveKey = looksLikeKey(apiKey) ? apiKey.trim() : envKey ? PROXY_KEY : ''
+  const needsKey = !!wantsPanel && !effectiveKey
 
   const togglePreset = (id: string) => {
     setPicked(cur => {
@@ -40,8 +42,8 @@ export default function Lobby() {
   }
 
   const verify = async () => {
-    const k = apiKey.trim()
-    if (!looksLikeKey(k)) {
+    const k = effectiveKey
+    if (!k) {
       setKeyState('bad')
       setKeyMsg('Keys start with "euri-". Create one at euron.one/euri → API Keys.')
       return false
@@ -50,7 +52,8 @@ export default function Lobby() {
     const r = await checkKey(k)
     setKeyState(r.ok ? 'ok' : 'bad')
     setKeyMsg(r.ok ? 'Key works' : r.error)
-    if (r.ok && !envKey) saveKey(k)
+    if (!r.ok) setSetupError(`The expert service did not answer: ${r.error}`)
+    if (r.ok && k !== PROXY_KEY) saveKey(k)
     return r.ok
   }
 
@@ -65,7 +68,7 @@ export default function Lobby() {
       if (keyState !== 'ok' && !(await verify())) return
       setBusy(true)
       try {
-        const experts = await resolveRoster(apiKey.trim(), wanted, topic, picked)
+        const experts = await resolveRoster(effectiveKey, wanted, topic, picked)
         if (experts.length === 0) {
           setSetupError('Pick at least one expert or describe who should join.')
           return
@@ -77,7 +80,7 @@ export default function Lobby() {
       } finally {
         setBusy(false)
       }
-    } else if (looksLikeKey(apiKey) && !envKey) {
+    } else if (looksLikeKey(apiKey)) {
       saveKey(apiKey.trim())
     }
     nav(`/${code}`, { state: { cam, mic } })
